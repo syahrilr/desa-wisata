@@ -1,6 +1,6 @@
 import Container from "@/components/container";
-import PemesananTiket from "@/components/pemesanan-tiket";
-import WIsataCard from "@/components/wisata-card";
+import { PemesananTiket } from "@/components/pemesanan-tiket";
+
 import { ShoppingBag } from "lucide-react";
 
 const PemesananPage = () => {
