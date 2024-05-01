@@ -1,11 +1,22 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import axios from "axios";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import axios from "axios";
+
 
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -15,11 +26,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "./ui/label";
 import { Checkbox } from "./ui/checkbox";
-import { PrismaClient } from "@prisma/client";
+import { Label } from "./ui/label";
+import { Separator } from "./ui/separator";
 
-const prisma = new PrismaClient()
 
 const formSchema = z.object({
   nama_pemesan: z.string().min(2, {
@@ -40,6 +50,7 @@ const formSchema = z.object({
 });
 
 export function PemesananTiket() {
+  const router = useRouter()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -65,6 +76,16 @@ export function PemesananTiket() {
     if(form.watch('jumlah_orang')) harga *= parseInt(form.watch('jumlah_orang'))
       
       return harga
+    }
+
+    const layananPaket = () =>{
+      if(form.watch('transportasi') && form.watch('makanan') && form.watch('penginapan')) return 'Transportasi, Makanan, Penginapan'
+      else if(form.watch('transportasi') && form.watch('makanan')) return 'Transportasi, Makanan'
+      else if(form.watch('transportasi') && form.watch('penginapan')) return 'Transportasi, Penginapan'
+      else if(form.watch('makanan') && form.watch('penginapan')) return 'Makanan, Penginapan'
+      else if(form.watch('transportasi')) return 'Transportasi'
+      else if(form.watch('makanan')) return 'Makanan'
+      else if(form.watch('penginapan')) return 'Penginapan'
     }
 
     const diskon = () => {
@@ -258,7 +279,98 @@ export function PemesananTiket() {
               />
             </div>
           </div>
-          <Button type="submit">Submit</Button>
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button type="submit" disabled={!form.formState.isValid}>Submit</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Rangkuman Reservasi Paket Wisata</DialogTitle>
+                <DialogDescription>
+                  Terima kasih telah melakukan reservasi paket wisata bersama kami. Berikut adalah rangkuman reservasi anda.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="name" className="text-right">
+                    Nama
+                  </Label>
+                  <Input
+                    id="name"
+                    disabled
+                    defaultValue={form.watch('nama_pemesan')}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="jumlah peserta" className="text-right">
+                    Jumlah Peserta
+                  </Label>
+                  <Input
+                    id="jumlah peserta"
+                    disabled
+                    defaultValue={form.watch('jumlah_orang')}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="Waktu Perjalanan" className="text-right">
+                    Waktu Perjalanan
+                  </Label>
+                  <Input
+                    id="Waktu Perjalanan"
+                    disabled
+                    defaultValue={form.watch('durasi_perjalanan')}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="Layanan Paket" className="text-right">
+                    Layanan Paket
+                  </Label>
+                  <Input
+                    id="Layanan Paket"
+                    disabled
+                    defaultValue={layananPaket()?.toString()}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="Harga Paket" className="text-right">
+                    Harga Paket
+                  </Label>
+                  <Input
+                    id="Harga Paket"
+                    disabled
+                    defaultValue={`Rp ${hargaPaket().toString()}`}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="Jumlah Tagihan" className="text-right">
+                    Jumlah Tagihan
+                  </Label>
+                  <Input
+                    id="Jumlah Tagihan"
+                    disabled
+                    defaultValue={`Rp ${totalTagihan().toString()}`}
+                    className="col-span-3"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <div className="flex flex-col">
+                  <p className="font-bold">Pesan Lagi</p>
+                  <Separator className="mb-3 mt-1"/>
+                  <div className="flex flex-row gap-3">
+                    <Button variant="default" onClick={() => router.back()}>Ya</Button>
+                    <Button variant="outline" onClick={() => router.push('/')}>Tidak</Button>
+                  </div>
+                </div>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </form>
       </Form>
     </div>
